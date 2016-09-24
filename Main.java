@@ -19,7 +19,7 @@ import java.io.*;
 public class Main {
 	
 	// static variables and constants only here.
-	static Set<String> dictionaryWords;
+	static Set<String> inputDictionary;
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -36,6 +36,7 @@ public class Main {
 		}
 		initialize();
 		ArrayList<String> userInput = parse(kb);
+		ArrayList<String> ladder = getWordLadderBFS(userInput.get(0), userInput.get(1));
 		
 		// TODO methods to read in words, output ladder
 	}
@@ -44,8 +45,7 @@ public class Main {
 		// initialize your static variables or constants here.
 		// We will call this method before running our JUNIT tests.  So call it 
 		// only once at the start of main.
-		
-		dictionaryWords = makeDictionary();
+		 inputDictionary = makeDictionary();
 	}
 	
 	/**
@@ -66,7 +66,7 @@ public class Main {
 		String [] inputList = inputLine.split("\\s"); // split the user inputs
 		
 		for(int index = 0; index < inputList.length; index++){ // add them to the array list
-			keyboardInput.add(inputList[index]);
+			keyboardInput.add(inputList[index].toUpperCase());
 		}
 		
 		return keyboardInput;
@@ -89,19 +89,65 @@ public class Main {
     public static ArrayList<String> getWordLadderBFS(String start, String end) {
 		
 		// TODO some code
-		Set<String> dict = makeDictionary();
+		Set<String> dict = makeDictionary(); // define a dictionary
 		ArrayList<String> ladderResult =  new ArrayList<String>();
 		
-		// TODO more code
+		LinkedList<ArrayList<String>> wordQueue = new LinkedList<ArrayList<String>>(); // FIFO queue 
+		ArrayList<String> initialLadder = new ArrayList<String>();
+		int i = 0;
 		
-		return ladderResult; // replace this line later with real return
+		dict.remove(start); // remove the starting word to prevent loop in solution
+		initialLadder.add(start); // start with the starting word
+		wordQueue.add(initialLadder);
+		
+		while(!wordQueue.isEmpty()){
+			ArrayList<String> topLadder = (ArrayList<String>)wordQueue.remove();
+			
+			String lastString = topLadder.get(topLadder.size() - 1); // get the latest string
+			
+			if (lastString.equals(end)){
+				return topLadder;
+			}
+			
+			char[] charArray = lastString.toCharArray();
+			i = 0;
+			
+			while(i < charArray.length){
+				for(char ch = 'A'; ch <= 'Z'; ch++){
+					char tempChar = charArray[i];
+					
+					if(charArray[i] != ch){
+						charArray[i] = ch;
+					}
+					
+					String anotherWord = new String(charArray);
+					if (dict.contains(anotherWord)){
+						ArrayList<String> newLadder = new ArrayList<String>();
+						newLadder.addAll(topLadder);
+						newLadder.add(anotherWord);
+						wordQueue.add(newLadder);
+						
+						dict.remove(anotherWord); // remove the word from dictionary to 'indicate' that they have been reached
+					}
+					
+					charArray[i] = tempChar; // revert back to the original char array
+				}
+				i += 1;
+			}
+			
+		}
+		
+		
+		
+
+		return ladderResult; // return an empty list if there is no path from start to end
 	}
     
 	public static Set<String>  makeDictionary () {
 		Set<String> words = new HashSet<String>();
 		Scanner infile = null;
 		try {
-			infile = new Scanner (new File("five_letter_words.txt"));
+			infile = new Scanner (new File("dict.txt"));
 		} catch (FileNotFoundException e) {
 			System.out.println("Dictionary File not Found!");
 			e.printStackTrace();
