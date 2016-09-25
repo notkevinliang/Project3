@@ -19,7 +19,9 @@ import java.io.*;
 public class Main {
 	
 	// static variables and constants only here.
-	static Set<String> inputDictionary;
+	public static Set<String> inputDictionary;
+	public static String startWord;
+	public static String endWord;
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -36,8 +38,12 @@ public class Main {
 		}
 		initialize();
 		ArrayList<String> userInput = parse(kb);
-		ArrayList<String> ladder = getWordLadderDFS(userInput.get(0), userInput.get(1));
-		printLadder(ladder);
+		if (!userInput.isEmpty()){
+			startWord = userInput.get(0);
+			endWord = userInput.get(1);
+			ArrayList<String> ladder = getWordLadderDFS(userInput.get(0), userInput.get(1));
+			printLadder(ladder);
+		}
 		// TODO methods to read in words, output ladder
 	}
 	
@@ -110,7 +116,7 @@ public class Main {
 			i += 1;
 		}
 		
-		// TODO more code
+		ladderResult.remove(start); // if the start is a dead-end, remove it
 		
 		return ladderResult; // return just a simple ladder with just start if no path is found
 	}
@@ -172,7 +178,7 @@ public class Main {
 		Set<String> words = new HashSet<String>();
 		Scanner infile = null;
 		try {
-			infile = new Scanner (new File("dict.txt"));
+			infile = new Scanner (new File("five_letter_words.txt"));
 		} catch (FileNotFoundException e) {
 			System.out.println("Dictionary File not Found!");
 			e.printStackTrace();
@@ -185,7 +191,16 @@ public class Main {
 	}
 	
 	public static void printLadder(ArrayList<String> ladder) {
-		
+		if (ladder.isEmpty()){
+			System.out.println("no word ladder can be found between <" + startWord + "> and <" + endWord + ">.");
+		}
+		else{
+			int ladderCount = ladder.size() - 2;
+			System.out.println("a " + ladderCount + "-rung word ladder exists between " + startWord + " and " + endWord + ".");
+			for (int i = 0; i < ladder.size(); i++){
+				System.out.println(ladder.get(i));
+			}
+		}
 	}
 	// TODO
 	// Other private static methods here
