@@ -36,8 +36,8 @@ public class Main {
 		}
 		initialize();
 		ArrayList<String> userInput = parse(kb);
-		ArrayList<String> ladder = getWordLadderBFS(userInput.get(0), userInput.get(1));
-		
+		ArrayList<String> ladder = getWordLadderDFS(userInput.get(0), userInput.get(1));
+		printLadder(ladder);
 		// TODO methods to read in words, output ladder
 	}
 	
@@ -74,16 +74,45 @@ public class Main {
 	
 	public static ArrayList<String> getWordLadderDFS(String start, String end) {
 		
-		// Returned list should be ordered start to end.  Include start and end.
 		// Return empty list if no ladder.
 		// TODO some code
-		Set<String> dict = makeDictionary();
 		ArrayList<String> ladderResult =  new ArrayList<String>();
+		if (start.equals(end)){
+			ladderResult.add(end);
+			return ladderResult;
+		}
 		
+		ladderResult.add(start);
+		inputDictionary.remove(start);
+		
+		char[] charArray = start.toCharArray();
+		
+		int i = 0;
+		while (i < charArray.length){
+			for(char ch = 'A'; ch <= 'Z'; ch++){
+				char tempChar = charArray[i];
+				if(charArray[i] != ch){
+					charArray[i] = ch;
+				}
+				
+				String potentialWord = new String(charArray);
+				if (inputDictionary.contains(potentialWord)){
+					inputDictionary.remove(potentialWord); 
+					ArrayList<String> newLadder = getWordLadderDFS(potentialWord, end);
+					if (newLadder.contains(end)){
+						ladderResult.addAll(newLadder);
+						return ladderResult;
+					}
+				}
+				
+				charArray[i] = tempChar;
+			}
+			i += 1;
+		}
 		
 		// TODO more code
 		
-		return ladderResult; // replace this line later with real return
+		return ladderResult; // return just a simple ladder with just start if no path is found
 	}
 	
     public static ArrayList<String> getWordLadderBFS(String start, String end) {
@@ -120,14 +149,14 @@ public class Main {
 						charArray[i] = ch;
 					}
 					
-					String anotherWord = new String(charArray);
-					if (dict.contains(anotherWord)){
+					String potentialWord = new String(charArray);
+					if (dict.contains(potentialWord)){
 						ArrayList<String> newLadder = new ArrayList<String>();
 						newLadder.addAll(topLadder);
-						newLadder.add(anotherWord);
+						newLadder.add(potentialWord);
 						wordQueue.add(newLadder);
 						
-						dict.remove(anotherWord); // remove the word from dictionary to 'indicate' that they have been reached
+						dict.remove(potentialWord); // remove the word from dictionary to 'indicate' that they have been reached
 					}
 					
 					charArray[i] = tempChar; // revert back to the original char array
@@ -136,10 +165,6 @@ public class Main {
 			}
 			
 		}
-		
-		
-		
-
 		return ladderResult; // return an empty list if there is no path from start to end
 	}
     
