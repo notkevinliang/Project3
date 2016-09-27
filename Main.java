@@ -22,6 +22,9 @@ public class Main {
 	public static Set<String> inputDictionary;
 	public static String startWord;
 	public static String endWord;
+	public static ArrayList<Character> importantCharacters;
+	public static ArrayList<Character> importantAlphabet;
+	public static char[] endArray;
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -36,12 +39,13 @@ public class Main {
 			kb = new Scanner(System.in);// default from Stdin
 			ps = System.out;			// default to Stdout
 		}
-		initialize();
+		
 		ArrayList<String> userInput = parse(kb);
 		if (!userInput.isEmpty()){
 			startWord = userInput.get(0);
 			endWord = userInput.get(1);
-			ArrayList<String> ladder = getWordLadderDFS(userInput.get(0), userInput.get(1));
+			initialize();
+			ArrayList<String> ladder = getWordLadderBFS(userInput.get(0), userInput.get(1));
 			printLadder(ladder);
 		}
 		// TODO methods to read in words, output ladder
@@ -52,6 +56,33 @@ public class Main {
 		// We will call this method before running our JUNIT tests.  So call it 
 		// only once at the start of main.
 		 inputDictionary = makeDictionary();
+		 importantCharacters = new ArrayList<Character>();
+		 
+		 ArrayList<Character> firstList = new ArrayList<Character>();
+		 importantAlphabet = new ArrayList<Character>();
+		 
+		 boolean charCheck = true;
+		 
+		 for(char ch = 'A'; ch <= 'Z'; ch++){
+			 for (int i = 0; i < endWord.length(); i ++){
+				 if (endWord.charAt(i) == ch){
+					 charCheck = false;
+				 }
+			 }
+			 if(charCheck){
+				 importantAlphabet.add(ch);
+			 }
+			 charCheck = true;
+		 }
+		 
+		 for(int j = 0; j < endWord.length(); j++){
+			 firstList.add(endWord.charAt(j));
+		 }
+		 importantCharacters.addAll(firstList);
+		 importantCharacters.addAll(importantAlphabet);
+		 
+		 endArray = endWord.toCharArray();
+		 
 	}
 	
 	/**
@@ -92,18 +123,43 @@ public class Main {
 		inputDictionary.remove(start);
 		
 		char[] charArray = start.toCharArray();
-		
+
 		int i = 0;
+		int j = 0;
+		char tempChar;
+		
+		//while (i < charArray.length){
+			for(j = 0; j < endArray.length; j++){ // then try other characters
+				tempChar = charArray[j];
+				if(charArray[j] != endArray[j]){
+					charArray[j] = endArray[j];
+				}
+				String potentialWord = new String(charArray);
+				if (inputDictionary.contains(potentialWord)){
+					inputDictionary.remove(potentialWord);
+					ArrayList<String> newLadder = getWordLadderDFS(potentialWord, end);
+					if (newLadder.contains(end)){
+						ladderResult.addAll(newLadder);
+						return ladderResult;
+					}
+				}
+				
+				charArray[j] = tempChar;
+			}
+		//i += 1;
+		//}
+		//i = 0;
+		
 		while (i < charArray.length){
-			for(char ch = 'A'; ch <= 'Z'; ch++){
-				char tempChar = charArray[i];
-				if(charArray[i] != ch){
-					charArray[i] = ch;
+			for(j = 0; j < importantAlphabet.size(); j++){ // then try other characters
+				tempChar = charArray[i];
+				if(charArray[i] != importantAlphabet.get(j)){
+					charArray[i] = importantAlphabet.get(j);
 				}
 				
 				String potentialWord = new String(charArray);
 				if (inputDictionary.contains(potentialWord)){
-					inputDictionary.remove(potentialWord); 
+					inputDictionary.remove(potentialWord);
 					ArrayList<String> newLadder = getWordLadderDFS(potentialWord, end);
 					if (newLadder.contains(end)){
 						ladderResult.addAll(newLadder);
@@ -113,8 +169,11 @@ public class Main {
 				
 				charArray[i] = tempChar;
 			}
-			i += 1;
+		i += 1;
 		}
+		
+		
+
 		
 		ladderResult.remove(start); // if the start is a dead-end, remove it
 		
@@ -122,8 +181,6 @@ public class Main {
 	}
 	
     public static ArrayList<String> getWordLadderBFS(String start, String end) {
-		
-		// TODO some code
 		Set<String> dict = makeDictionary(); // define a dictionary
 		ArrayList<String> ladderResult =  new ArrayList<String>();
 		
@@ -135,7 +192,7 @@ public class Main {
 		initialLadder.add(start); // start with the starting word
 		wordQueue.add(initialLadder);
 		
-		while(!wordQueue.isEmpty()){
+		while(!wordQueue.isEmpty()){ // queue will become empty when there is no more words left to progress
 			ArrayList<String> topLadder = (ArrayList<String>)wordQueue.remove();
 			
 			String lastString = topLadder.get(topLadder.size() - 1); // get the latest string
