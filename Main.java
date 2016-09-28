@@ -19,12 +19,14 @@ import java.io.*;
 public class Main {
 	
 	// static variables and constants only here.
-	public static Set<String> inputDictionary;
+	//public static ArrayList<String> inputDictionary;
+	public static ArrayDeque<String> inputDictionary;
+	//public static Set<String> visitedWords;
+	//public static Set<String> visitedWords;
 	public static String startWord;
 	public static String endWord;
-	public static ArrayList<Character> importantCharacters;
-	public static ArrayList<Character> importantAlphabet;
 	public static char[] endArray;
+	public static ArrayList<String> ladder;
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -45,7 +47,7 @@ public class Main {
 			startWord = userInput.get(0);
 			endWord = userInput.get(1);
 			initialize();
-			ArrayList<String> ladder = getWordLadderBFS(userInput.get(0), userInput.get(1));
+			ArrayList<String> ladder = getWordLadderDFS(userInput.get(0), userInput.get(1));
 			printLadder(ladder);
 		}
 		// TODO methods to read in words, output ladder
@@ -55,33 +57,10 @@ public class Main {
 		// initialize your static variables or constants here.
 		// We will call this method before running our JUNIT tests.  So call it 
 		// only once at the start of main.
-		 inputDictionary = makeDictionary();
-		 importantCharacters = new ArrayList<Character>();
-		 
-		 ArrayList<Character> firstList = new ArrayList<Character>();
-		 importantAlphabet = new ArrayList<Character>();
-		 
-		 boolean charCheck = true;
-		 
-		 for(char ch = 'A'; ch <= 'Z'; ch++){
-			 for (int i = 0; i < endWord.length(); i ++){
-				 if (endWord.charAt(i) == ch){
-					 charCheck = false;
-				 }
-			 }
-			 if(charCheck){
-				 importantAlphabet.add(ch);
-			 }
-			 charCheck = true;
-		 }
-		 
-		 for(int j = 0; j < endWord.length(); j++){
-			 firstList.add(endWord.charAt(j));
-		 }
-		 importantCharacters.addAll(firstList);
-		 importantCharacters.addAll(importantAlphabet);
-		 
-		 endArray = endWord.toCharArray();
+		Set<String> tempDict = makeDictionary();
+		inputDictionary = new ArrayDeque<String>(tempDict);
+		endArray = endWord.toCharArray();
+		ladder = new ArrayList<String>();
 		 
 	}
 	
@@ -110,17 +89,23 @@ public class Main {
 	}
 	
 	public static ArrayList<String> getWordLadderDFS(String start, String end) {
+		Set<String> visitedWords = new HashSet<String>();
+		ArrayList<String> resultLadder = getWordLadderDFS(start, end, visitedWords);
+		return resultLadder;
+	}
+	
+	private static ArrayList<String> getWordLadderDFS(String start, String end, Set<String> visitedWords){
+		ArrayList<String> ladder = new ArrayList<String>();
 		
-		// Return empty list if no ladder.
-		// TODO some code
-		ArrayList<String> ladderResult =  new ArrayList<String>();
 		if (start.equals(end)){
-			ladderResult.add(end);
-			return ladderResult;
+			ladder.add(end);
+			return ladder;
 		}
 		
-		ladderResult.add(start);
-		inputDictionary.remove(start);
+		ladder.add(start);
+		//inputDictionary.remove(start);
+		visitedWords.add(start);
+		
 		
 		char[] charArray = start.toCharArray();
 
@@ -128,56 +113,60 @@ public class Main {
 		int j = 0;
 		char tempChar;
 		
-		//while (i < charArray.length){
-			for(j = 0; j < endArray.length; j++){ // then try other characters
-				tempChar = charArray[j];
-				if(charArray[j] != endArray[j]){
-					charArray[j] = endArray[j];
-				}
-				String potentialWord = new String(charArray);
-				if (inputDictionary.contains(potentialWord)){
-					inputDictionary.remove(potentialWord);
-					ArrayList<String> newLadder = getWordLadderDFS(potentialWord, end);
-					if (newLadder.contains(end)){
-						ladderResult.addAll(newLadder);
-						return ladderResult;
+		for(j = 0; j < endArray.length; j++){ // then try other characters
+			tempChar = charArray[j];
+			if(charArray[j] != endArray[j]){
+				charArray[j] = endArray[j];
+			
+				String potentialWord = String.valueOf(charArray);
+				
+				if (!visitedWords.contains(potentialWord)){
+					if (inputDictionary.contains(potentialWord)){
+					//inputDictionary.remove(potentialWord);
+					//visitedWords.add(potentialWord);
+						ArrayList<String> newLadder = getWordLadderDFS(potentialWord, end, visitedWords);
+						if (newLadder.contains(end)){
+							ladder.addAll(newLadder);
+							return ladder;
+						}
 					}
 				}
-				
-				charArray[j] = tempChar;
 			}
-		//i += 1;
-		//}
-		//i = 0;
+				
+			charArray[j] = tempChar;
+		}
+		
+		i = 0;
 		
 		while (i < charArray.length){
-			for(j = 0; j < importantAlphabet.size(); j++){ // then try other characters
+			for(char ch = 'A'; ch <= 'Z'; ch++){ // then try other characters
 				tempChar = charArray[i];
-				if(charArray[i] != importantAlphabet.get(j)){
-					charArray[i] = importantAlphabet.get(j);
-				}
-				
-				String potentialWord = new String(charArray);
-				if (inputDictionary.contains(potentialWord)){
-					inputDictionary.remove(potentialWord);
-					ArrayList<String> newLadder = getWordLadderDFS(potentialWord, end);
-					if (newLadder.contains(end)){
-						ladderResult.addAll(newLadder);
-						return ladderResult;
+				if(charArray[i] != ch){
+					charArray[i] = ch;
+
+					String potentialWord = String.valueOf(charArray);
+					
+					if (!visitedWords.contains(potentialWord)){
+					//if (inputDictionary.contains(potentialWord) && !visitedWords.contains(potentialWord)){
+						if (inputDictionary.contains(potentialWord)){
+						//inputDictionary.remove(potentialWord);
+							ArrayList<String> newLadder = getWordLadderDFS(potentialWord, end, visitedWords);
+							if (newLadder.contains(end)){
+								ladder.addAll(newLadder);
+								return ladder;
+							}
+						}
 					}
 				}
-				
 				charArray[i] = tempChar;
 			}
 		i += 1;
 		}
-		
-		
 
 		
-		ladderResult.remove(start); // if the start is a dead-end, remove it
+		ladder.remove(start); // if the start is a dead-end, remove it
 		
-		return ladderResult; // return just a simple ladder with just start if no path is found
+		return ladder; // return just a simple ladder with just start if no path is found
 	}
 	
     public static ArrayList<String> getWordLadderBFS(String start, String end) {
@@ -226,7 +215,6 @@ public class Main {
 				}
 				i += 1;
 			}
-			
 		}
 		return ladderResult; // return an empty list if there is no path from start to end
 	}
@@ -249,13 +237,13 @@ public class Main {
 	
 	public static void printLadder(ArrayList<String> ladder) {
 		if (ladder.isEmpty()){
-			System.out.println("no word ladder can be found between <" + startWord + "> and <" + endWord + ">.");
+			System.out.println("no word ladder can be found between <" + startWord.toLowerCase() + "> and <" + endWord.toLowerCase() + ">.");
 		}
 		else{
 			int ladderCount = ladder.size() - 2;
-			System.out.println("a " + ladderCount + "-rung word ladder exists between " + startWord + " and " + endWord + ".");
+			System.out.println("a " + ladderCount + "-rung word ladder exists between " + startWord.toLowerCase() + " and " + endWord.toLowerCase() + ".");
 			for (int i = 0; i < ladder.size(); i++){
-				System.out.println(ladder.get(i));
+				System.out.println(ladder.get(i).toLowerCase());
 			}
 		}
 	}
